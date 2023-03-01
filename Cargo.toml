@@ -1,0 +1,11 @@
+[package]
+name = "splitstreamer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+gio = "0.17.2"
+gst-plugin-fallbackswitch = { version = "0.10.0" }
+gstreamer = { version = "0.20.2" }
