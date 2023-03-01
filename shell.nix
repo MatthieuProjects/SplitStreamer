@@ -25,6 +25,9 @@ mkShell {
 		gtk4
 		gtk3
 		atkmm
-		gdk-pixbuf
+ 		rustfmt
+    		rust-analyzer
+    		clippy	
 	];
+	RUST_BACKTRACE = 1;
 }
