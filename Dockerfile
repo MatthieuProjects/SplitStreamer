@@ -31,7 +31,7 @@ RUN --mount=type=cache,target=/root/.cargo/git/db \
 #Copy from the build/<target triple>/release folder to the out folder
 RUN mkdir ./out && cp ./build/*/release/* ./out || true
 
-FROM debian AS runtime
+FROM --platform=$BUILDPLATFORM debian AS runtime
 
 RUN apt-get update && \
   apt-get -y --no-install-recommends install software-properties-common && \
