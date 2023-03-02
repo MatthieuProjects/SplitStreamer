@@ -1,39 +1,42 @@
-FROM rust as build
+# syntax=docker/dockerfile:1
+FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
+FROM --platform=$BUILDPLATFORM rust as alpine_rbuild
 
-RUN apt-get update && \
-  apt-get -y --no-install-recommends install software-properties-common && \
-  add-apt-repository "deb http://httpredir.debian.org/debian sid main"
-RUN apt update && apt install -y build-essential libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
-# create a new empty shell project
-RUN USER=root cargo new --bin splitstreamer
-WORKDIR /splitstreamer
-
-# copy over your manifests
-COPY ./Cargo.lock ./Cargo.lock
-COPY ./Cargo.toml ./Cargo.toml
-
-# this build step will cache your dependencies
-RUN cargo build --release
-RUN rm src/*.rs
-
-# copy your source tree
-COPY ./src ./src
-
-# build for release
-RUN rm ./target/release/deps/splitstreamer*
-RUN cargo build --release
-
-FROM debian
-WORKDIR /app
+# We need this to handle gstreamer packages.
 RUN apt-get update && \
   apt-get -y --no-install-recommends install software-properties-common && \
   add-apt-repository "deb http://httpredir.debian.org/debian sid main"
 
-RUN apt-get update && apt-get install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+# Copy the xx scripts
+COPY --from=xx / /
 
-# copy the build artifact from the build stage
-COPY --from=build /splitstreamer/target/release/splitstreamer .
+ARG TARGETPLATFORM
+# Install the libraries dependent on architecture.
+RUN xx-apt install -y build-essential libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 
-# set the startup command to run your binary
-CMD ["./splitstreamer"]
+# Copy source code
+COPY . .
 
+RUN --mount=type=cache,target=/root/.cargo/git/db \
+    --mount=type=cache,target=/root/.cargo/registry/cache \
+    --mount=type=cache,target=/root/.cargo/registry/index \
+    cargo fetch
+RUN --mount=type=cache,target=/root/.cargo/git/db \
+    --mount=type=cache,target=/root/.cargo/registry/cache \
+    --mount=type=cache,target=/root/.cargo/registry/index \
+    xx-cargo build --release --target-dir ./build
+
+#Copy from the build/<target triple>/release folder to the out folder
+RUN mkdir ./out && cp ./build/*/release/* ./out || true
+
+FROM debian AS runtime
+
+RUN apt-get update && \
+  apt-get -y --no-install-recommends install software-properties-common && \
+  add-apt-repository "deb http://httpredir.debian.org/debian sid main"
+
+ARG TARGETPLATFORM
+RUN xx-apt install gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+
+COPY --from=alpine_rbuild /out/splitstreamer /usr/local/bin/
+ENTRYPOINT /usr/local/bin/splitstreamer

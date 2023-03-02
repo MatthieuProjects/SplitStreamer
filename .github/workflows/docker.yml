@@ -1,0 +1,52 @@
+name: docker
+
+on:
+  push:
+    branches:
+      - "main"
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64/v8
+          - linux/arm/v7
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: "arm64,arm"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          platforms: linux/amd64,linux/arm64/v8,linux/arm/v7
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create tag
+        run: |
+          export TAG="${{ matrix.platform }}"
+          export TAG=${TAG/linux\//}
+          echo -n "TAG=${TAG//\//-}" > .env
+      - name: Build and push
+        uses: docker/bake-action@v2
+        with:
+          push: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+            *.platform=${{ matrix.platform }}
