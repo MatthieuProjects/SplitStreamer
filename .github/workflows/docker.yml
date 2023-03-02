@@ -35,3 +35,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ghcr.io/matthieucoder/splitstreamer:latest
+          driver-opts: |
+            image=moby/buildkit:v0.10.6
