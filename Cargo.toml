@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 gio = "0.17.2"
-gst-plugin-fallbackswitch = { version = "0.10.0" }
+#gst-plugin-fallbackswitch = { version = "0.10.0" }
 gstreamer = { version = "0.20.2" }
 config = "*"
 serde ={ version = "*", features = ["derive"]}

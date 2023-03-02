@@ -4,7 +4,7 @@ FROM --platform=$BUILDPLATFORM rust as alpine_rbuild
 
 # We need this to handle gstreamer packages.
 RUN apt-get update && \
-  apt-get -y --no-install-recommends install software-properties-common clang lld build-essential  && \
+  apt-get -y --no-install-recommends install software-properties-common clang lld build-essential libgcc-s1-arm64-cross && \
   add-apt-repository "deb http://httpredir.debian.org/debian sid main"
 
 # Copy the xx scripts
@@ -12,21 +12,19 @@ COPY --from=xx / /
 
 ARG TARGETPLATFORM
 # Install the libraries dependent on architecture.
-RUN xx-apt install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl libheif1 pkg-config
+RUN xx-apt install -y libgcc-10-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl pkg-config
 
 # Copy source code
 COPY . .
 
-ENV PKG_CONFIG_SYSROOT_DIR=/
-
 RUN --mount=type=cache,target=/root/.cargo/git/db \
     --mount=type=cache,target=/root/.cargo/registry/cache \
     --mount=type=cache,target=/root/.cargo/registry/index \
-    cargo fetch
+    PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) cargo fetch
 RUN --mount=type=cache,target=/root/.cargo/git/db \
     --mount=type=cache,target=/root/.cargo/registry/cache \
     --mount=type=cache,target=/root/.cargo/registry/index \
-    xx-cargo build --release --target-dir ./build
+    RUSTFLAGS="-L /usr/$(xx-info triple)" PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) xx-cargo build --release --target-dir ./build
 
 #Copy from the build/<target triple>/release folder to the out folder
 RUN mkdir ./out && cp ./build/*/release/* ./out || true
