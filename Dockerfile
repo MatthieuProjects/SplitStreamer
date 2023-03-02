@@ -4,7 +4,7 @@ FROM --platform=$BUILDPLATFORM rust as alpine_rbuild
 
 # We need this to handle gstreamer packages.
 RUN apt-get update && \
-  apt-get -y --no-install-recommends install software-properties-common && \
+  apt-get -y --no-install-recommends install software-properties-common clang lld && \
   add-apt-repository "deb http://httpredir.debian.org/debian sid main"
 
 # Copy the xx scripts
