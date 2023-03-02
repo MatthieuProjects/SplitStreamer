@@ -17,6 +17,8 @@ RUN xx-apt install -y libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgs
 # Copy source code
 COPY . .
 
+ENV PKG_CONFIG_SYSROOT_DIR=/
+
 RUN --mount=type=cache,target=/root/.cargo/git/db \
     --mount=type=cache,target=/root/.cargo/registry/cache \
     --mount=type=cache,target=/root/.cargo/registry/index \
