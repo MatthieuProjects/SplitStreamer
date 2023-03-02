@@ -3,7 +3,7 @@ version: '3'
 services:
   splitstreamer:
     build: .
-    image: ghcr.io/MatthieuCoder/splitstreamer:${TAG:-latest}
+    image: ghcr.io/matthieucoder/splitstreamer:${TAG:-latest}
     volumes:
       - ./config.toml:/app/config.toml
       - ./waiting.webm:/app/waiting.webm
