@@ -1,0 +1,5 @@
+multicast_port = 5000
+multicast_address = "224.1.1.1"
+
+resolution_w = 1920
+resolution_h = 1080

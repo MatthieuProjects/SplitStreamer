@@ -9,5 +9,11 @@ edition = "2021"
 gio = "0.17.2"
 #gst-plugin-fallbackswitch = { version = "0.10.0" }
 gstreamer = { version = "0.20.2" }
-config = "*"
+config = "0.13.3"
 serde ={ version = "*", features = ["derive"]}
+anyhow = "*"
+clap = { version = "4.1.8", features = ["derive"] }
+toml = "0.7.2"
+serde_json = "1.0.93"
+[[bin]]
+name = "client"

@@ -1,0 +1,64 @@
+{
+    "configs": [
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 0,
+                "bottom": 1280,
+                "left": 0,
+                "right": 3200
+            }
+        },
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 0,
+                "bottom": 1280,
+                "left": 1600,
+                "right": 1600
+            }
+        },
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 0,
+                "bottom": 1280,
+                "left": 3200,
+                "right": 0
+            }
+        },
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 1280,
+                "bottom": 0,
+                "left": 0,
+                "right": 3200
+            }
+        },
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 1280,
+                "bottom": 0,
+                "left": 1600,
+                "right": 1600
+            }
+        },
+        {
+            "multicast_port": 5000,
+            "multicast_address": "224.1.1.1",
+            "video_box": {
+                "top": 1280,
+                "bottom": 0,
+                "left": 3200,
+                "right": 0
+            }
+        }
+    ]
+}

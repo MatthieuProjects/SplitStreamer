@@ -1,12 +1,30 @@
-use serde::{Serialize, Deserialize};
-/// 
+use serde::{Deserialize, Serialize};
+
 #[derive(Debug, Deserialize, Serialize)]
-pub struct ScreenConfig {
-    pub screen_width: i32,
-    pub columns: i32,
+pub struct VideoBox {
+    pub top: usize,
+    pub bottom: usize,
+    pub left: usize,
+    pub right: usize,
+}
 
-    pub screen_height: i32,
-    pub lines: i32,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ClientConfig {
+    pub multicast_port: u16,
+    pub multicast_address: String,
+    pub video_box: VideoBox,
+}
 
-    pub screen_port: i32,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ClientConfigFile {
+    pub configs: Vec<ClientConfig>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ServerConfig {
+    pub multicast_port: u16,
+    pub multicast_address: String,
+
+    pub resolution_w: i32,
+    pub resolution_h: i32,
 }
