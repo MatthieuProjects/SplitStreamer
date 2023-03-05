@@ -1,9 +1,9 @@
 use config::Config;
-use gstreamer::{prelude::*, Fraction};
+use gstreamer::prelude::*;
 use splitstreamer::settings::ServerConfig;
 
-//const FALLBACK_PIPELINE: &str = "multifilesrc location=waiting.webm loop=true";
-const FALLBACK_PIPELINE: &str = "videotestsrc";
+const FALLBACK_PIPELINE: &str = "multifilesrc location=waiting.webm loop=true";
+//const FALLBACK_PIPELINE: &str = "videotestsrc";
 fn main() -> anyhow::Result<()> {
     // Initialize gstreamer
     gstreamer::init()?;
@@ -14,8 +14,8 @@ fn main() -> anyhow::Result<()> {
         .build()?
         .try_deserialize::<ServerConfig>()?;
     let caps = gstreamer::Caps::builder("video/x-raw")
-        .field("height", settings.resolution_h)
-        .field("width", settings.resolution_w)
+        .field("height", settings.resolution_h * settings.screen_h)
+        .field("width", settings.resolution_w * settings.screen_w)
         .build();
     let pipeline = gstreamer::Pipeline::default();
 
@@ -30,14 +30,14 @@ fn main() -> anyhow::Result<()> {
         .unwrap();
 
     // Create a sink for audio
-    /*let audio_sink = gstreamer::ElementFactory::make("autoaudiosink")
-    .build()
-    .unwrap();*/
+    let audio_sink = gstreamer::ElementFactory::make("autoaudiosink")
+        .build()
+        .unwrap();
 
     let encodebin = gstreamer::ElementFactory::make("x264enc")
         .property_from_str("speed-preset", "ultrafast")
         .property_from_str("tune", "zerolatency")
-        .property("bitrate", 2000u32)
+        .property("bitrate", 10000u32)
         .build()?;
     let payload = gstreamer::ElementFactory::make("rtph264pay").build()?;
     let conv = gstreamer::ElementFactory::make("videoconvert").build()?;
@@ -53,7 +53,7 @@ fn main() -> anyhow::Result<()> {
     pipeline
         .add_many(&[
             &media_src,
-            // &audio_sink,
+            &audio_sink,
             &conv,
             &scl,
             &decodebin,
@@ -74,14 +74,14 @@ fn main() -> anyhow::Result<()> {
         let s = caps.structure(0).unwrap();
 
         let encodebin = conv.static_pad("sink").unwrap();
-        // let audio_sink_pad = audio_sink.static_pad("sink").unwrap();
+        let audio_sink_pad = audio_sink.static_pad("sink").unwrap();
 
         println!("pad added to decodebin: {}", s.name());
         if s.name() == "video/x-raw" && !encodebin.is_linked() {
             pad.link(&encodebin).unwrap();
-        } /* else if s.name() == "audio/x-raw" && audio_sink_pad.is_linked() {
-              // pad.link(&audio_sink_pad).unwrap();
-          }*/
+        } else if s.name() == "audio/x-raw" && audio_sink_pad.is_linked() {
+            pad.link(&audio_sink_pad).unwrap();
+        }
     });
 
     let bus = pipeline.bus().unwrap();

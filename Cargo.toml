@@ -15,5 +15,22 @@ anyhow = "*"
 clap = { version = "4.1.8", features = ["derive"] }
 toml = "0.7.2"
 serde_json = "1.0.93"
+async-tungstenite = { version = "0.20", features = ["async-std-runtime", "async-native-tls"] }
+gstreamer-rtp = { package = "gstreamer-rtp", version = "0.20", features = ["v1_20"]}
+gstreamer-webrtc = { package = "gstreamer-webrtc", version = "0.20" }
+gstreamer-sdp = { package = "gstreamer-sdp", version = "0.20" }
+rand = "*"
+async-std = "*"
+futures = "*"
+gst-plugin-fallbackswitch = "0.10.0"
 [[bin]]
 name = "client"
+
+[[bin]]
+name = "confgen"
+
+[[bin]]
+name = "server2"
+
+[[bin]]
+name = "server"

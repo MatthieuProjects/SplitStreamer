@@ -1,55 +1,45 @@
-// Program that listens for a multicast stream
-// decodes it, cuts it and display it
-
 use config::Config;
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
     traits::{ElementExt, GstObjectExt, PadExt},
-    Caps, Fraction, Pipeline,
+    Caps, Pipeline,
 };
-use splitstreamer::settings::ClientConfigFile;
+use splitstreamer::settings::ClientConfig;
 
-const CAPS: &str = "application/x-rtp";
-
+/**
+ * This program listens for a stream on the network.
+ * Once it receives the stream, it cuts it according to the screen position in the config file
+ */
 fn main() -> anyhow::Result<()> {
-    // Initialize gstreamer
+    // Initializing gstreamer
     gstreamer::init()?;
 
+    // Loading configuration.
     let settings = Config::builder()
         .add_source(config::File::with_name("client"))
-        .add_source(config::Environment::with_prefix("SPLITSTREAMER"))
         .build()?;
+    // We deserialize our config file according to the ClientConfig struct.
+    let client_config = settings.try_deserialize::<ClientConfig>()?;
 
-    let caps = Caps::builder("application/x-rtp")
+    // We are expecting this signal from the streaming server.
+    let rtp_caps = Caps::builder("application/x-rtp")
         .field("clock-rate", 90000)
         .build();
 
-    let caps2 = Caps::builder("video/x-raw")
-        .field("height", 1080)
-        .field("width", 1920)
-        .build();
-
-    let self_id: usize = settings.get("id")?;
-    let client_configs = settings.try_deserialize::<ClientConfigFile>()?;
-
-    let client_config = client_configs
-        .configs
-        .get(self_id)
-        .ok_or_else(|| anyhow::anyhow!("self does not exist"))?;
-
+    // Initializing the GStreamer pipeline described like this:
+    // udpsrc -> rtpjitterbuffer -> rtph264depay -> (avdec_h264) -> videoconvertscale -> videobox -> videoconvertscale -> autovideosink
     let pipeline = Pipeline::default();
 
-    // We need to build a pipeline that receives a udp stream
-    // handles the jitter
+    // Listening for the packets in the multicast group.
     let udp_source = gstreamer::ElementFactory::make("udpsrc")
         .property_from_str("multicast-group", &client_config.multicast_address)
         .property("auto-multicast", true)
         .property("port", client_config.multicast_port as i32)
         .build()?;
-
-    let depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
-    // we need to be able to handle any codec
-    let decodebin = gstreamer::ElementFactory::make("avdec_h264").build()?;
+    let jitter_buffer = gstreamer::ElementFactory::make("rtpjitterbuffer").build()?;
+    let rtp_depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
+    let decoder = gstreamer::ElementFactory::make("decodebin").build()?;
+    let videoconvertscale0 = gstreamer::ElementFactory::make("videoconvertscale").build()?;
     let videobox = gstreamer::ElementFactory::make("videobox")
         .property("right", client_config.video_box.right as i32)
         .property("left", client_config.video_box.left as i32)
@@ -57,38 +47,45 @@ fn main() -> anyhow::Result<()> {
         .property("bottom", client_config.video_box.bottom as i32)
         .build()
         .expect("failed to create videobox element");
-    // we output the data
-    let auto_video_sink = gstreamer::ElementFactory::make("autovideosink").build()?;
-    let convert = gstreamer::ElementFactory::make("videoconvert").build()?;
+    let videoconvertscale1 = gstreamer::ElementFactory::make("videoconvertscale").build()?;
+    let sink = gstreamer::ElementFactory::make("autovideosink").build()?;
+
+    // Add the elements to the pipeline
     pipeline.add_many(&[
         &udp_source,
-        &decodebin,
-        &depayloader,
-        &convert,
-        &auto_video_sink,
+        &jitter_buffer,
+        &rtp_depayloader,
+        &decoder,
+        &videoconvertscale0,
         &videobox,
+        &videoconvertscale1,
+        &sink,
     ])?;
 
-    // udp_source ! deplayloader ! decodebin ! videobox ! convert ! auto_video_sink
+    // Linking the pipeline.
+    udp_source.link_filtered(&jitter_buffer, &rtp_caps)?;
+    jitter_buffer.link(&rtp_depayloader)?;
+    rtp_depayloader.link(&decoder)?;
 
-    udp_source.link_filtered(&depayloader, &caps)?;
-    depayloader.link(&decodebin)?;
-    decodebin.link(&convert)?;
-    convert.link_filtered(&videobox, &caps2)?;
-    videobox.link(&auto_video_sink)?;
+    videoconvertscale0.link(&videobox)?;
+    videobox.link(&videoconvertscale1)?;
+    videoconvertscale1.link(&sink)?;
 
-    /*decodebin.connect_pad_added(move |_, pad| {
+    // the decoder is a bin with dynamic pads, so we need to add an event.
+    decoder.connect_pad_added(move |_, pad| {
         let caps = pad.current_caps().unwrap();
         let s = caps.structure(0).unwrap();
 
-        let video_sink_pad = auto_video_sink.static_pad("sink").unwrap();
+        // This is the pad we want to link out decoder to
+        let video_sink_pad = videoconvertscale0.static_pad("sink").unwrap();
 
-        println!("pad added to decodebin: {}", s.name());
+        // we are only interesed by the video streams that are unlinked.
         if s.name() == "video/x-raw" && !video_sink_pad.is_linked() {
             pad.link(&video_sink_pad).unwrap();
         }
-    });*/
+    });
 
+    // Starting the bus.
     let bus = pipeline.bus().expect("failed to get bus");
     pipeline.set_state(gstreamer::State::Playing)?;
 
@@ -110,6 +107,8 @@ fn main() -> anyhow::Result<()> {
             _ => (),
         }
     }
+
+    // this pipeline shouldn't end except when an error is raised.
 
     pipeline.set_state(gstreamer::State::Null)?;
 

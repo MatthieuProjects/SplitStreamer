@@ -27,4 +27,7 @@ pub struct ServerConfig {
 
     pub resolution_w: i32,
     pub resolution_h: i32,
+
+    pub screen_h: i32,
+    pub screen_w: i32,
 }
