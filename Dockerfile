@@ -12,7 +12,7 @@ COPY --from=xx / /
 
 ARG TARGETPLATFORM
 # Install the libraries dependent on architecture.
-RUN xx-apt install -y libgcc-10-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl pkg-config 
+RUN xx-apt install -y libgcc-10-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl pkg-config  linux-libc-dev libc6-dev
 
 # Copy source code
 COPY . .
