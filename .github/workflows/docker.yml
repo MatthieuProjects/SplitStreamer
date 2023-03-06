@@ -33,4 +33,4 @@ jobs:
         with:
           push: true
           set: |
-            target.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
+            *.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
