@@ -12,3 +12,6 @@ services:
       - "/dev/dri:/dev/dri"
     environment:
         GST_DEBUG: "1"
+  web:
+    build: web
+    image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
