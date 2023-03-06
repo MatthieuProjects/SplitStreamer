@@ -40,5 +40,5 @@ COPY --from=xx / /
 ARG TARGETPLATFORM
 RUN xx-apt install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav
 
-COPY --from=alpine_rbuild /out/splitstreamer /usr/local/bin/
+COPY --from=alpine_rbuild /out/* /usr/local/bin/
 ENTRYPOINT /usr/local/bin/splitstreamer
