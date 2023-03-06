@@ -29,9 +29,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/bake-action@v2
         with:
-          platforms: linux/amd64,linux/arm64/v8,linux/arm/v7
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ghcr.io/matthieucoder/splitstreamer:latest
+          push: true
+          set: |
+            target.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
