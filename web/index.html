@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SplitStreamer</title>
+</head>
+
+<body class="bg-slate-900 text-white">
+  <header class="m-10 h-full">
+    <h1 class="text-3xl mb-3">
+      SplitStreamer
+    </h1>
+    <p class="mb-5">
+      Bienvenu(e) sur <a href="https://github.com/MatthieuCoder/SplitStreamer" target="_blank">
+        <bold class="font-bold">SplitStreamer</bold>, grâce a cette plateforme, vous pouvez partager
+        votre écran vers le grand écran.
+      </a>
+    </p>
+    <button disabled class="btn" id="start">
+      Démarrer le partage d'écran
+    </button>
+    <div class="mt-10 h-full video-container">
+      <video autoplay class="h-full aspect-video video" id="video" poster="cat.jpg"></video>
+    </div>
+  </header>
+  <footer class="fixed bg-gray-700 bottom-0 w-full p-3 flex">
+    <div class="ml-auto">
+      Statut de la connexion: <span id="status" class="font-bold">Disconnected</span>
+    </div>
+  </footer>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

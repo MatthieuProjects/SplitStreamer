@@ -1,13 +1,13 @@
-[package]
+[workspace.metadata]
 name = "splitstreamer"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["client", "server", "shared", "confgen"]
 
-[dependencies]
-gio = "0.17.2"
-#gst-plugin-fallbackswitch = { version = "0.10.0" }
-gstreamer = { version = "0.20.2" }
-config = "*"
-serde ={ version = "*", features = ["derive"]}
+[workspace.dependencies]
+gstreamer = "0.20.2"
+config = "0.13.3"
+anyhow = "1.0.69"
+serde = "1.0.152"
