@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex, Weak};
 
-use futures::channel::mpsc;
+use tokio::sync::mpsc;
 
 use async_tungstenite::tungstenite;
 use tungstenite::Message as WsMessage;
@@ -120,7 +120,7 @@ impl Peer {
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .send(WsMessage::Text(message))
             .context("Failed to send SDP offer")?;
 
         Ok(())
@@ -169,7 +169,7 @@ impl Peer {
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .send(WsMessage::Text(message))
             .context("Failed to send SDP answer")?;
 
         Ok(())
@@ -262,7 +262,7 @@ impl Peer {
         self.send_msg_tx
             .lock()
             .unwrap()
-            .unbounded_send(WsMessage::Text(message))
+            .send(WsMessage::Text(message))
             .context("Failed to send ICE candidate")?;
 
         Ok(())

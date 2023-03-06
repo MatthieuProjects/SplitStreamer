@@ -1,5 +1,5 @@
 use clap::Parser;
-use splitstreamer::settings::{ClientConfig, ClientConfigFile, VideoBox};
+use shared::config::{ClientConfig, ClientConfigFile, VideoBox};
 
 /// A simple program that generates configurations for a given screen combinaison
 #[derive(Debug, Parser, Default)]

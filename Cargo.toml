@@ -1,36 +1,13 @@
-[package]
+[workspace.metadata]
 name = "splitstreamer"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = ["client", "server", "shared", "confgen"]
 
-[dependencies]
-gio = "0.17.2"
-#gst-plugin-fallbackswitch = { version = "0.10.0" }
-gstreamer = { version = "0.20.2" }
+[workspace.dependencies]
+gstreamer = "0.20.2"
 config = "0.13.3"
-serde ={ version = "*", features = ["derive"]}
-anyhow = "*"
-clap = { version = "4.1.8", features = ["derive"] }
-toml = "0.7.2"
-serde_json = "1.0.93"
-async-tungstenite = { version = "0.20", features = ["async-std-runtime", "async-native-tls"] }
-gstreamer-rtp = { package = "gstreamer-rtp", version = "0.20", features = ["v1_20"]}
-gstreamer-webrtc = { package = "gstreamer-webrtc", version = "0.20" }
-gstreamer-sdp = { package = "gstreamer-sdp", version = "0.20" }
-rand = "*"
-async-std = "*"
-futures = "*"
-gst-plugin-fallbackswitch = "0.10.0"
-[[bin]]
-name = "client"
-
-[[bin]]
-name = "confgen"
-
-[[bin]]
-name = "server2"
-
-[[bin]]
-name = "server"
+anyhow = "1.0.69"
+serde = "1.0.152"

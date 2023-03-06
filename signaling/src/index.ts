@@ -77,8 +77,15 @@ wss.on('connection', (ws, request) => {
                         console.log(":: Server send", receiver);
                     }
                     break;
+                case Codes.ClientDisconnect:
+                    if (clients[id] && current_server) {
+                        current_server.send(JSON.stringify({ type: Codes.ClientDisconnect, data: { peer: id } }));
+                        delete clients[id];
+                        console.log(":: Client", id, "left streaming");
+                    }
+                    break;
                 default:
-                    throw new Error('invalid');
+                    throw new Error('invalid ' +  request.type);
                     break;
             }
         } catch (e) {

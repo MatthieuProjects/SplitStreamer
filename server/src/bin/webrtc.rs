@@ -2,9 +2,13 @@ use anyhow::bail;
 use async_tungstenite::tungstenite::Error as WsError;
 use async_tungstenite::tungstenite::Message as WsMessage;
 use clap::Parser;
-use futures::{Sink, SinkExt, Stream, StreamExt};
+use futures_util::Sink;
+use futures_util::SinkExt;
+use futures_util::StreamExt;
+use tokio::select;
+use tokio_stream::Stream;
 
-use splitstreamer::webrtc::App;
+use server::webrtc::App;
 
 #[derive(Debug, clap::Parser)]
 struct Args {
@@ -28,10 +32,10 @@ async fn run(
 
     // And now let's start our message loop
     loop {
-        let ws_msg = futures::select! {
+        let ws_msg = select! {
             // Handle the WebSocket messages here
-            ws_msg = ws_stream.select_next_some() => {
-                match ws_msg? {
+            ws_msg = ws_stream.next() => {
+                match ws_msg.unwrap()? {
                     WsMessage::Close(_) => {
                         println!("peer disconnected");
                         break
@@ -55,9 +59,9 @@ async fn run(
             },
             // Handle WebSocket messages we created asynchronously
             // to send them out now
-            ws_msg = send_ws_msg_rx.select_next_some() => Some(ws_msg),
+            ws_msg = send_ws_msg_rx.select_next_some() => { Some(ws_msg) },
             // Once we're done, break the loop and return
-            complete => break,
+            else => { break },
         };
 
         // If there's a message to send out, do so now
@@ -105,7 +109,8 @@ fn check_plugins() -> Result<(), anyhow::Error> {
     }
 }
 
-async fn async_main() -> Result<(), anyhow::Error> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     // Initialize GStreamer first
     gstreamer::init()?;
     gstfallbackswitch::plugin_register_static().expect("Failed to register fallbackswitch plugin");
@@ -115,15 +120,10 @@ async fn async_main() -> Result<(), anyhow::Error> {
     let args = Args::parse();
 
     // Connect to the given server
-    let (mut ws, _) = async_tungstenite::async_std::connect_async(&args.server).await?;
+    let (ws, _) = async_tungstenite::tokio::connect_async(&args.server).await?;
 
     println!("connected");
 
-
     // All good, let's run our message loop
     run(ws).await
-}
-
-fn main() {
-    async_std::task::block_on(async_main()).unwrap();
 }

@@ -4,7 +4,7 @@ use gstreamer::{
     traits::{ElementExt, GstObjectExt, PadExt},
     Caps, Pipeline,
 };
-use splitstreamer::settings::ClientConfig;
+use shared::config::ClientConfig;
 
 /**
  * This program listens for a stream on the network.

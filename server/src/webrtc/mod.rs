@@ -1,10 +1,10 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, Weak};
-
-use async_std::prelude::*;
-use futures::channel::mpsc;
+use tokio::sync::mpsc;
 
 use async_tungstenite::tungstenite;
+use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_stream::Stream;
 use tungstenite::Message as WsMessage;
 
 use gstreamer::{glib, Element};
@@ -111,7 +111,7 @@ impl App {
         let send_gst_msg_rx = bus.stream();
 
         // Channel for outgoing WebSocket messages from other threads
-        let (send_ws_msg_tx, send_ws_msg_rx) = mpsc::unbounded::<WsMessage>();
+        let (send_ws_msg_tx, send_ws_msg_rx) = mpsc::unbounded_channel::<WsMessage>();
 
         let app = App(Arc::new(AppInner {
             pipeline,
@@ -132,7 +132,11 @@ impl App {
             }
         });
 
-        Ok((app, send_gst_msg_rx, send_ws_msg_rx))
+        Ok((
+            app,
+            send_gst_msg_rx,
+            UnboundedReceiverStream::new(send_ws_msg_rx),
+        ))
     }
 
     // Handle WebSocket messages, both our own as well as WebSocket protocol messages

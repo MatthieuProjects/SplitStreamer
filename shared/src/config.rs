@@ -1,6 +1,7 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct VideoBox {
     pub top: usize,
     pub bottom: usize,
@@ -8,26 +9,29 @@ pub struct VideoBox {
     pub right: usize,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize,JsonSchema)]
 pub struct ClientConfig {
     pub multicast_port: u16,
     pub multicast_address: String,
     pub video_box: VideoBox,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ClientConfigFile {
     pub configs: Vec<ClientConfig>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
+pub struct Resolution {
+    pub height: u64,
+    pub width: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize, JsonSchema)]
 pub struct ServerConfig {
     pub multicast_port: u16,
     pub multicast_address: String,
+    pub total_resolution: Resolution,
 
-    pub resolution_w: i32,
-    pub resolution_h: i32,
-
-    pub screen_h: i32,
-    pub screen_w: i32,
+    pub signaling_server: String,
 }
