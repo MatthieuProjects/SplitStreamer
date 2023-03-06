@@ -1,17 +1,24 @@
 version: '3'
 
 services:
-  splitstreamer:
-    build: .
-    image: ghcr.io/matthieucoder/splitstreamer:${TAG:-latest}
-    volumes:
-      - ./config.toml:/app/config.toml
-      - ./waiting.webm:/app/waiting.webm
-    devices:
-      - "/dev/snd:/dev/snd"
-      - "/dev/dri:/dev/dri"
-    environment:
-        GST_DEBUG: "1"
+  server:
+    build:
+      context: .
+      args:
+        TARGET: server
+    image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
+  client:
+    build:
+      context: .
+      args:
+        TARGET: client
+    image: ghcr.io/matthieucoder/splitstreamer/client:${TAG:-latest}
+  confgen:
+    build:
+      context: .
+      args:
+        TARGET: confgen
+    image: ghcr.io/matthieucoder/splitstreamer/confgen:${TAG:-latest}
   web:
     build: web
     image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
