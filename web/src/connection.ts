@@ -33,7 +33,6 @@ export default class WebRtcManager extends EventEmitter {
     #websocket?: WebSocket;
     #connection?: RTCPeerConnection;
     #stream?: MediaStream;
-    #id?: string;
     #istatus: Status = Status.Disconnected;
     #retrys: number = 0;
 
@@ -136,7 +135,6 @@ export default class WebRtcManager extends EventEmitter {
                 // Our connection is now initialized and we need to wait until our client wants to start streaming.
                 case Codes.Hello:
                     console.log(':: Connection initialized');
-                    this.#id = payload.data.id;
                     this.#status = Status.Ready;
                     break;
                 // Once out client has decided to start streaming, we need to wait for the signaling server to tell us
