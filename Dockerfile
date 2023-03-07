@@ -24,7 +24,7 @@ RUN PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=
 RUN RUSTFLAGS="-L /usr/$(xx-info triple)" PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) xx-cargo build --release --target-dir ./build 
 
 #Copy from the build/<target triple>/release folder to the out folder
-RUN mkdir -p ./out && cp ./build/$(xx-info triple)/release/$TARGET ./out
+RUN mkdir -p ./out && cp ./build/*/release/$TARGET ./out || true
 
 FROM scratch as bare
 COPY --from=alpine_rbuild /out/$TARGET .
