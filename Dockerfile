@@ -29,7 +29,7 @@ RUN mkdir -p ./out && cp ./build/*/release/$TARGET ./out || true
 FROM scratch as bare
 COPY --from=alpine_rbuild /out/$TARGET .
 
-FROM --platform=$BUILDPLATFORM debian AS runtime
+FROM debian AS runtime
 
 RUN apt-get update && \
   apt-get -y --no-install-recommends install software-properties-common && \
