@@ -6,6 +6,8 @@ services:
       context: .
       args:
         TARGET: server
+    depends_on:
+      - signaling
     image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
   client:
     build:
@@ -21,4 +23,9 @@ services:
     image: ghcr.io/matthieucoder/splitstreamer/confgen:${TAG:-latest}
   web:
     build: web
+    depends_on:
+      - signaling
     image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
+  signaling:
+    build: signaling
+    image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

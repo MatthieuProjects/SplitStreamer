@@ -20,17 +20,14 @@ RUN xx-apt install -y libgcc-10-dev libgstreamer1.0-dev libgstreamer-plugins-bas
 # Copy source code
 COPY . .
 RUN cd $TARGET
-RUN --mount=type=cache,target=/root/.cargo/git/db \
-    --mount=type=cache,target=/root/.cargo/registry/cache \
-    --mount=type=cache,target=/root/.cargo/registry/index \
-    PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) cargo fetch
-RUN --mount=type=cache,target=/root/.cargo/git/db \
-    --mount=type=cache,target=/root/.cargo/registry/cache \
-    --mount=type=cache,target=/root/.cargo/registry/index \
-    RUSTFLAGS="-L /usr/$(xx-info triple)" PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) xx-cargo build --release --target-dir ./build 
+RUN PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) cargo fetch
+RUN RUSTFLAGS="-L /usr/$(xx-info triple)" PKG_CONFIG_PATH=/usr/lib/$(xx-info triple)/pkgconfig PKG_CONFIG_SYSROOT_DIR=/usr/$(xx-info triple) xx-cargo build --release --target-dir ./build 
 
 #Copy from the build/<target triple>/release folder to the out folder
-RUN mkdir ./out && cp ./build/*/release/$TARGET ./out || true
+RUN mkdir -p ./out && cp ./build/$(xx-info triple)/release/$TARGET ./out
+
+FROM scratch as bare
+COPY --from=alpine_rbuild /out/$TARGET .
 
 FROM --platform=$BUILDPLATFORM debian AS runtime
 

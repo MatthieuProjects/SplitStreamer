@@ -2,13 +2,20 @@ use config::Config;
 use gstreamer::prelude::*;
 use server::splitscreen_bin::build_spliscreen_bin;
 use shared::config::ServerConfig;
+use clap::Parser;
+
+#[derive(Debug, Parser)]
+struct Args {
+    #[clap(short, long)]
+    pub file: String,
+}
 
 //const FALLBACK_PIPELINE: &str = "videotestsrc";
 fn main() -> anyhow::Result<()> {
     // Initialize gstreamer
     gstreamer::init()?;
 
-    let file = "waiting.webm";
+    let args = Args::parse();
 
     let settings = Config::builder()
         .add_source(config::File::with_name("server"))
@@ -20,7 +27,7 @@ fn main() -> anyhow::Result<()> {
 
     // This is our video source for now.
     let media_src: gstreamer::Element = gstreamer::ElementFactory::make("filesrc")
-        .property("location", file)
+        .property("location", args.file)
         .build()
         .unwrap();
 
