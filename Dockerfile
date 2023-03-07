@@ -33,12 +33,8 @@ FROM debian AS runtime
 
 RUN apt-get update && \
   apt-get -y --no-install-recommends install software-properties-common && \
-  add-apt-repository "deb http://httpredir.debian.org/debian sid main"
-
-COPY --from=xx / /
-
-ARG TARGETPLATFORM
-RUN xx-apt install -y gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav linux-libc-dev libc6-dev 
+  add-apt-repository "deb http://httpredir.debian.org/debian sid main" \
+  && apt-get install gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav linux-libc-dev libc6-dev 
 
 COPY --from=alpine_rbuild /out/$TARGET /usr/local/bin/
 ENTRYPOINT /usr/local/bin/$TARGET
