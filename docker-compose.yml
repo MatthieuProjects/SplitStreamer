@@ -26,6 +26,8 @@ services:
     depends_on:
       - signaling
     image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
+    ports:
+      - 8443:80
   signaling:
     build: signaling
     image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

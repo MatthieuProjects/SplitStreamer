@@ -7,4 +7,4 @@ COPY . .
 
 RUN npm run build
 
-ENTRYPOINT node build/index.js²
+ENTRYPOINT node build/index.js
