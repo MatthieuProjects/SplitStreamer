@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, Weak};
 
+use shared::config::ServerConfig;
 use tokio::sync::mpsc;
 
 use async_tungstenite::tungstenite;
@@ -11,7 +12,6 @@ use anyhow::{anyhow, bail, Context};
 
 use crate::upgrade_weak;
 use crate::webrtc::payloads::{Message, PeerPacket, PeerPacketInner};
-use crate::webrtc::{VIDEO_HEIGHT, VIDEO_WIDTH};
 
 // Strong reference to the state of one peer
 #[derive(Debug, Clone)]
@@ -44,6 +44,7 @@ pub struct PeerInner {
     pub bin: gstreamer::Bin,
     pub webrtcbin: gstreamer::Element,
     pub send_msg_tx: Arc<Mutex<mpsc::UnboundedSender<WsMessage>>>,
+    pub settings: ServerConfig,
 }
 
 impl Peer {
@@ -286,7 +287,7 @@ impl Peer {
         let conv = if media_type == "video" {
             gstreamer::parse_bin_from_description(
                 &format!(
-                    "decodebin name=dbin ! queue ! videoconvert ! videoscale ! capsfilter name=src caps=video/x-raw,width={VIDEO_WIDTH},height={VIDEO_HEIGHT},pixel-aspect-ratio=1/1"
+                    "decodebin name=dbin ! queue ! videoconvert ! videoscale ! capsfilter name=src caps=video/x-raw,width={},height={},pixel-aspect-ratio=1/1", self.settings.total_resolution.height, self.settings.total_resolution.height
                 ),
                 false,
             )?
@@ -336,7 +337,7 @@ impl Peer {
 }
 
 // At least shut down the bin here if it didn't happen so far
-impl Drop for PeerInner {
+impl Drop for PeerInner{
     fn drop(&mut self) {
         let _ = self.bin.set_state(gstreamer::State::Null);
     }

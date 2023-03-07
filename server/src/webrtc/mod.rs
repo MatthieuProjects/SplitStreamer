@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, Weak};
+use shared::config::ServerConfig;
 use tokio::sync::mpsc;
 
 use async_tungstenite::tungstenite;
@@ -12,6 +13,7 @@ use gstreamer::{prelude::*, ElementFactory};
 
 use anyhow::{anyhow, bail};
 
+use crate::splitscreen_bin::build_spliscreen_bin;
 use crate::webrtc::peer::PeerInner;
 
 use self::payloads::{Message, PeerPacketInner};
@@ -19,11 +21,6 @@ use self::peer::Peer;
 
 pub mod payloads;
 mod peer;
-
-const STUN_SERVER: &str = "stun://stun.l.google.com:19302";
-const TURN_SERVER: &str = "turn://foo:bar@webrtc.gstreamer.net:3478";
-pub const VIDEO_WIDTH: u32 = 1920;
-pub const VIDEO_HEIGHT: u32 = 1080;
 
 // upgrade weak reference or return
 #[macro_export]
@@ -54,10 +51,12 @@ pub struct AppInner {
     fallback_switch: Element,
     send_msg_tx: Arc<Mutex<mpsc::UnboundedSender<WsMessage>>>,
     peers: Mutex<BTreeMap<String, Peer>>,
+
+    settings: ServerConfig,
 }
 
 // To be able to access the App's fields directly
-impl std::ops::Deref for App {
+impl<'a> std::ops::Deref for App {
     type Target = AppInner;
 
     fn deref(&self) -> &AppInner {
@@ -65,22 +64,22 @@ impl std::ops::Deref for App {
     }
 }
 
-impl AppWeak {
+impl<'a> AppWeak {
     // Try upgrading a weak reference to a strong one
-    fn upgrade(&self) -> Option<App> {
+    fn upgrade(&'a self) -> Option<App> {
         self.0.upgrade().map(App)
     }
 }
 
-impl App {
+impl<'a> App {
     // Downgrade the strong reference to a weak reference
-    fn downgrade(&self) -> AppWeak {
+    fn downgrade(&'a self) -> AppWeak {
         AppWeak(Arc::downgrade(&self.0))
     }
 
-    pub fn new() -> Result<
+    pub fn new(settings: ServerConfig) -> Result<
         (
-            Self,
+            App,
             impl Stream<Item = gstreamer::Message>,
             impl Stream<Item = WsMessage>,
         ),
@@ -88,7 +87,7 @@ impl App {
     > {
         // Create the GStreamer pipeline
         let pipeline = gstreamer::parse_launch(
-            "fallbackswitch min-upstream-latency=5000 name=switch ! queue name=output ! autovideosink",
+            "fallbackswitch min-upstream-latency=5000 name=switch ! queue name=output",
         )?;
 
         let test = ElementFactory::make("videotestsrc").build()?;
@@ -105,6 +104,10 @@ impl App {
         test.static_pad("src").unwrap().link(&pad).unwrap();
 
         let queue_output = pipeline.by_name("output").expect("can't find output");
+        let sink_bin = build_spliscreen_bin(&settings)?;
+        pipeline.add(&sink_bin)?;
+        queue_output.link(&sink_bin)?;
+        
 
         // Create a stream for handling the GStreamer message asynchronously
         let bus = pipeline.bus().unwrap();
@@ -118,6 +121,7 @@ impl App {
             fallback_switch,
             peers: Mutex::new(BTreeMap::new()),
             send_msg_tx: Arc::new(Mutex::new(send_ws_msg_tx)),
+            settings
         }));
 
         // Asynchronously set the pipeline to Playing
@@ -212,8 +216,8 @@ impl App {
         let webrtcbin = peer_bin.by_name("webrtcbin").expect("can't find webrtcbin");
 
         // Set some properties on webrtcbin
-        webrtcbin.set_property_from_str("stun-server", STUN_SERVER);
-        webrtcbin.set_property_from_str("turn-server", TURN_SERVER);
+        webrtcbin.set_property_from_str("stun-server", &self.settings.stun_server);
+        webrtcbin.set_property_from_str("turn-server", &self.settings.turn_server);
         webrtcbin.set_property_from_str("bundle-policy", "max-bundle");
 
         let peer = Peer(Arc::new(PeerInner {
@@ -221,6 +225,7 @@ impl App {
             bin: peer_bin,
             webrtcbin,
             send_msg_tx: self.send_msg_tx.clone(),
+            settings: self.settings.clone()
         }));
 
         // Insert the peer into our map_
