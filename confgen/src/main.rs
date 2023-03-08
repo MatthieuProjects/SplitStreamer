@@ -1,5 +1,5 @@
 use clap::Parser;
-use shared::config::{ClientConfig, ClientConfigFile, VideoBox};
+use shared::config::{ClientConfig, VideoBox};
 
 /// A simple program that generates configurations for a given screen combinaison
 #[derive(Debug, Parser, Default)]
@@ -61,7 +61,7 @@ pub fn main() -> anyhow::Result<()> {
 
     println!(
         "{}",
-        serde_json::to_string(&ClientConfigFile { configs: screens })?
+        serde_json::to_string(&screens)?
     );
 
     Ok(())

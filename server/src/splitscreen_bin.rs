@@ -1,6 +1,6 @@
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
-    ElementFactory, GhostPad, traits::{ElementExt, PadExt},
+    ElementFactory, GhostPad, traits::{ElementExt},
 };
 use shared::config::ServerConfig;
 
@@ -8,11 +8,11 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
     let bin = gstreamer::Bin::new(Some("splitscreen"));
 
     let caps = gstreamer::Caps::builder("video/x-raw")
-        .field("height", settings.total_resolution.height)
-        .field("width", settings.total_resolution.width)
+        .field("height", settings.total_resolution.height as i32)
+        .field("width", settings.total_resolution.width as i32)
         .build();
 
-    let video_scaleconvert = ElementFactory::make("videoconertscale").build()?;
+    let video_scaleconvert = ElementFactory::make("videoconvertscale").build()?;
     let encoder = ElementFactory::make("x264enc")
         .property_from_str("speed-preset", "ultrafast")
         .property_from_str("tune", "zerolatency")
@@ -28,15 +28,13 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
 
     bin.add_many(&[&video_scaleconvert, &encoder, &payloader, &video_sink])?;
 
-    video_scaleconvert.link(&encoder)?;
-    encoder.link_filtered(&payloader, &caps)?;
+    video_scaleconvert.link_filtered(&encoder, &caps)?;
+    encoder.link(&payloader)?;
     payloader.link(&video_sink)?;
 
-    let ghost_sink = GhostPad::new(Some("sink"), gstreamer::PadDirection::Sink);
-    bin.add_pad(&ghost_sink)?;
-
     let sink = video_scaleconvert.static_pad("sink").expect("ok");
-    ghost_sink.link(&sink)?;
+    let ghost_sink = GhostPad::with_target(Some("sink"), &sink)?;
+    bin.add_pad(&ghost_sink)?;
 
     Ok(bin)
 }

@@ -15,12 +15,6 @@ services:
       args:
         TARGET: client
     image: ghcr.io/matthieucoder/splitstreamer/client:${TAG:-latest}
-  confgen:
-    build:
-      context: .
-      args:
-        TARGET: confgen
-    image: ghcr.io/matthieucoder/splitstreamer/confgen:${TAG:-latest}
   web:
     build: web
     depends_on:

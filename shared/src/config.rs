@@ -16,11 +16,6 @@ pub struct ClientConfig {
     pub video_box: VideoBox,
 }
 
-#[derive(Debug, Deserialize, Serialize, JsonSchema)]
-pub struct ClientConfigFile {
-    pub configs: Vec<ClientConfig>,
-}
-
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone)]
 pub struct Resolution {
     pub height: u64,

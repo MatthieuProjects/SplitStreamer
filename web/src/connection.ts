@@ -91,7 +91,7 @@ export default class WebRtcManager extends EventEmitter {
         await new Promise((r) => setTimeout(() => r(void 0), this.#retrys * 1000));
         this.#retrys++;
 
-        const ws = `${window.location.protocol === 'https' ? 'wss' : 'ws'}://${window.location.host}/ws`;
+        const ws = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/ws`;
         console.log(`Connecting to ${ws}`);
         this.#websocket = new WebSocket(ws);
 
