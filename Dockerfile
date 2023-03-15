@@ -28,7 +28,7 @@ RUN RUSTFLAGS="-L /usr/$(xx-info triple)" PKG_CONFIG_PATH=/usr/lib/$(xx-info tri
 #Copy from the build/<target triple>/release folder to the out folder
 RUN mkdir -p ./out && cp ./build/*/release/* ./out || true
 
-FROM scratch as bare
+FROM --platform=$BUILDPLATFORM scratch as bare
 COPY --from=alpine_rbuild /out/$TARGET .
 
 FROM debian AS runtime

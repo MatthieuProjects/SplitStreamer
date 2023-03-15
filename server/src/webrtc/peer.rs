@@ -287,7 +287,7 @@ impl Peer {
         let conv = if media_type == "video" {
             gstreamer::parse_bin_from_description(
                 &format!(
-                    "decodebin name=dbin ! queue ! videoconvert ! videoscale ! capsfilter name=src caps=video/x-raw,width={},height={},pixel-aspect-ratio=1/1", self.settings.total_resolution.height, self.settings.total_resolution.height
+                    "decodebin name=dbin ! queue ! videoconvert ! videoscale ! capsfilter name=src caps=video/x-raw,width={},height={},pixel-aspect-ratio=1/1", self.settings.total_resolution.width, self.settings.total_resolution.height
                 ),
                 false,
             )?

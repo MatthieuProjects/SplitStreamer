@@ -1,0 +1,1 @@
+/./build/armv7-unknown-linux-gnueabihf/release/libserver.rlib: /server/src/lib.rs /server/src/splitscreen_bin.rs /server/src/webrtc/mod.rs /server/src/webrtc/payloads.rs /server/src/webrtc/peer.rs /shared/src/config.rs /shared/src/lib.rs

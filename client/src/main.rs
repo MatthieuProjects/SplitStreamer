@@ -36,7 +36,8 @@ fn main() -> anyhow::Result<()> {
         .property("auto-multicast", true)
         .property("port", client_config.multicast_port as i32)
         .build()?;
-    let jitter_buffer = gstreamer::ElementFactory::make("rtpjitterbuffer").build()?;
+    let jitter_buffer = gstreamer::ElementFactory::make("rtpjitterbuffer")
+        .property_from_str("mode", "slave").build()?;
     let rtp_depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
     let decoder = gstreamer::ElementFactory::make("decodebin").build()?;
     let videoconvertscale0 = gstreamer::ElementFactory::make("videoconvertscale").build()?;

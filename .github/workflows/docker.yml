@@ -35,5 +35,13 @@ jobs:
           set: |
             *.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
       - name: Build binaries
-        run: |
-          echo "tb"
+        uses: docker/bake-action@v2
+        with:
+          set: |
+            *.target=bare
+            *.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
+            *.output=type=local,dest=out
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: out/*

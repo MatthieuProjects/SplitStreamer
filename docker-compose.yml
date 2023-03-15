@@ -6,8 +6,8 @@ services:
       context: .
       args:
         TARGET: server
-    depends_on:
-      - signaling
+    depends_on: []
+      # - signaling
     image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
   client:
     build:
@@ -15,13 +15,13 @@ services:
       args:
         TARGET: client
     image: ghcr.io/matthieucoder/splitstreamer/client:${TAG:-latest}
-  web:
-    build: web
-    depends_on:
-      - signaling
-    image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
-    ports:
-      - 8443:80
-  signaling:
-    build: signaling
-    image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}
+  # web:
+  #  build: web
+  #  depends_on:
+  #    - signaling
+  #  image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
+  #  ports:
+  #    - 8443:80
+  # ignaling:
+  #  build: signaling
+  #  image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

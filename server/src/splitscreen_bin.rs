@@ -1,6 +1,7 @@
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
-    ElementFactory, GhostPad, traits::{ElementExt},
+    traits::ElementExt,
+    ElementFactory, GhostPad,
 };
 use shared::config::ServerConfig;
 
@@ -16,7 +17,7 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
     let encoder = ElementFactory::make("x264enc")
         .property_from_str("speed-preset", "ultrafast")
         .property_from_str("tune", "zerolatency")
-        .property("bitrate", 10000u32)
+        .property("bitrate", 1000u32)
         .build()?;
     let payloader = ElementFactory::make("rtph264pay").build()?;
 
