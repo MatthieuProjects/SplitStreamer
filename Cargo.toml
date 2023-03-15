@@ -7,7 +7,7 @@ edition = "2021"
 members = ["client", "server", "shared", "confgen"]
 
 [workspace.dependencies]
-gstreamer = "0.20.2"
+gstreamer = { version = "0.20.2", features = ["v1_18"] }
 config = "0.13.3"
 anyhow = "1.0.69"
 serde = "1.0.152"
