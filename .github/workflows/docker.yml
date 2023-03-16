@@ -34,6 +34,8 @@ jobs:
           push: true
           set: |
             *.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
       - name: Build binaries
         uses: docker/bake-action@v2
         with:
@@ -41,7 +43,13 @@ jobs:
             *.target=bare
             *.platform=linux/amd64,linux/arm64/v8,linux/arm/v7
             *.output=type=local,dest=out
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
       - uses: actions/upload-artifact@v3
         with:
           name: artifacts
           path: out/*
+      - name: Build image
+        run: |
+          apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx gpg pigz
+          ./build_image.sh

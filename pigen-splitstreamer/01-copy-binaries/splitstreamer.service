@@ -1,0 +1,13 @@
+[Unit]
+Description=SplitStreamer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/boot
+ExecStart=/usr/bin/client
+Restart=true
+
+[Install]
+WantedBy=multi-user.target
+
