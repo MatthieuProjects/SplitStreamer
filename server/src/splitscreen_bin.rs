@@ -1,9 +1,9 @@
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
-    traits::ElementExt,
+    traits::{ElementExt, GstBinExt},
     ElementFactory, GhostPad,
 };
-use shared::config::ServerConfig;
+use shared::{config::ServerConfig, build_videoconvertscale};
 
 pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, anyhow::Error> {
     let bin = gstreamer::Bin::new(Some("splitscreen"));
@@ -13,7 +13,7 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
         .field("width", settings.total_resolution.width as i32)
         .build();
 
-    let video_scaleconvert = ElementFactory::make("videoconvertscale").build()?;
+    let video_scaleconvert = build_videoconvertscale()?;
     let encoder = ElementFactory::make("x264enc")
         .property_from_str("speed-preset", "ultrafast")
         .property_from_str("tune", "zerolatency")
@@ -27,7 +27,8 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
         .property("auto-multicast", true)
         .build()?;
 
-    bin.add_many(&[&video_scaleconvert, &encoder, &payloader, &video_sink])?;
+    bin.add(&video_scaleconvert)?;
+    bin.add_many(&[&encoder, &payloader, &video_sink])?;
 
     video_scaleconvert.link_filtered(&encoder, &caps)?;
     encoder.link(&payloader)?;

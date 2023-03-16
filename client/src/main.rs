@@ -2,9 +2,9 @@ use config::Config;
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
     traits::{ElementExt, GstObjectExt, PadExt},
-    Caps, Pipeline,
+    Caps, Pipeline, glib::clone::Downgrade,
 };
-use shared::config::ClientConfig;
+use shared::{config::ClientConfig, build_videoconvertscale};
 
 /**
  * This program listens for a stream on the network.
@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
         .property_from_str("mode", "slave").build()?;
     let rtp_depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
     let decoder = gstreamer::ElementFactory::make("decodebin").build()?;
-    let videoconvertscale0 = gstreamer::ElementFactory::make("videoconvertscale").build()?;
+    let videoconvertscale0 = build_videoconvertscale()?;
     let videobox = gstreamer::ElementFactory::make("videobox")
         .property("right", client_config.video_box.right as i32)
         .property("left", client_config.video_box.left as i32)
@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
         .property("bottom", client_config.video_box.bottom as i32)
         .build()
         .expect("failed to create videobox element");
-    let videoconvertscale1 = gstreamer::ElementFactory::make("videoconvertscale").build()?;
+    let videoconvertscale1 = build_videoconvertscale()?;
     let sink = gstreamer::ElementFactory::make("autovideosink").build()?;
 
     // Add the elements to the pipeline
@@ -57,11 +57,10 @@ fn main() -> anyhow::Result<()> {
         &jitter_buffer,
         &rtp_depayloader,
         &decoder,
-        &videoconvertscale0,
         &videobox,
-        &videoconvertscale1,
         &sink,
     ])?;
+    pipeline.add_many(&[&videoconvertscale0, &videoconvertscale1])?;
 
     // Linking the pipeline.
     udp_source.link_filtered(&jitter_buffer, &rtp_caps)?;
