@@ -8,4 +8,4 @@ cp out/linux_arm_v7/client pigen-splitstreamer/01-copy-binaries
 cp pigen.config pi-gen/config
 cp -r pigen-splitstreamer pi-gen/
 cd pi-gen
-./build.sh
+./build-docker.sh
