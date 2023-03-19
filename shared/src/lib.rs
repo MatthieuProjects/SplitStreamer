@@ -4,7 +4,7 @@ pub mod config;
 
 // Used because in gstreamer 1.18, videoconvertscale does not exists.
 pub fn build_videoconvertscale() -> Result<Bin> {
-    let bin = Bin::new(Some("videoconvertscale"));
+    let bin = Bin::new(None);
 
     let scale = ElementFactory::make("videoscale").build()?;
     let convert = ElementFactory::make("videoconvert").build()?;

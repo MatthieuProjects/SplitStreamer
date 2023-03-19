@@ -7,7 +7,7 @@ services:
       args:
         TARGET: server
     environment:
-      - GST_DEBUG=3
+      - GST_DEBUG=6
     depends_on:
       - signaling
     devices:

@@ -27,7 +27,7 @@ fn main() -> anyhow::Result<()> {
         .build();
 
     // Initializing the GStreamer pipeline described like this:
-    // udpsrc -> rtpjitterbuffer -> rtph264depay -> (avdec_h264) -> videoconvertscale -> videobox -> videoconvertscale -> autovideosink
+    // udpsrc -> rtph264depay -> (avdec_h264) -> videoconvertscale -> videobox -> videoconvertscale -> autovideosink
     let pipeline = Pipeline::default();
 
     // Listening for the packets in the multicast group.
@@ -35,9 +35,6 @@ fn main() -> anyhow::Result<()> {
         .property_from_str("multicast-group", &client_config.multicast_address)
         .property("auto-multicast", true)
         .property("port", client_config.multicast_port as i32)
-        .build()?;
-    let jitter_buffer = gstreamer::ElementFactory::make("rtpjitterbuffer")
-        .property_from_str("mode", "slave")
         .build()?;
     let rtp_depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
     let decoder = gstreamer::ElementFactory::make("decodebin").build()?;
@@ -55,7 +52,6 @@ fn main() -> anyhow::Result<()> {
     // Add the elements to the pipeline
     pipeline.add_many(&[
         &udp_source,
-        &jitter_buffer,
         &rtp_depayloader,
         &decoder,
         &videobox,
@@ -64,8 +60,7 @@ fn main() -> anyhow::Result<()> {
     pipeline.add_many(&[&videoconvertscale0, &videoconvertscale1])?;
 
     // Linking the pipeline.
-    udp_source.link_filtered(&jitter_buffer, &rtp_caps)?;
-    jitter_buffer.link(&rtp_depayloader)?;
+    udp_source.link_filtered(&rtp_depayloader, &rtp_caps)?;
     rtp_depayloader.link(&decoder)?;
 
     videoconvertscale0.link(&videobox)?;
