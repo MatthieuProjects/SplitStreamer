@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  server:
+    build:
+      context: .
+      args:
+        TARGET: server
+    environment:
+      - GST_DEBUG=3
+    depends_on:
+      - signaling
+    devices:
+      - /dev/snd:/dev/snd
+      - /dev/dri:/dev/dri
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ./server.dev.toml:/server.toml
+    image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
+  web:
+   build: web
+   depends_on:
+     - signaling
+   volumes:
+      - ./ssl.key:/usr/nginx/ssl.key
+      - ./ssl.crt:/usr/nginx/ssl.crt
+   image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
+   ports:
+     - 8443:443
+  signaling:
+   build: signaling
+   image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

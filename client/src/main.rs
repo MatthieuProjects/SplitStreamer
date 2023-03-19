@@ -2,9 +2,9 @@ use config::Config;
 use gstreamer::{
     prelude::{ElementExtManual, GstBinExtManual},
     traits::{ElementExt, GstObjectExt, PadExt},
-    Caps, Pipeline, glib::clone::Downgrade,
+    Caps, Pipeline,
 };
-use shared::{config::ClientConfig, build_videoconvertscale};
+use shared::{build_videoconvertscale, config::ClientConfig};
 
 /**
  * This program listens for a stream on the network.
@@ -37,7 +37,8 @@ fn main() -> anyhow::Result<()> {
         .property("port", client_config.multicast_port as i32)
         .build()?;
     let jitter_buffer = gstreamer::ElementFactory::make("rtpjitterbuffer")
-        .property_from_str("mode", "slave").build()?;
+        .property_from_str("mode", "slave")
+        .build()?;
     let rtp_depayloader = gstreamer::ElementFactory::make("rtph264depay").build()?;
     let decoder = gstreamer::ElementFactory::make("decodebin").build()?;
     let videoconvertscale0 = build_videoconvertscale()?;
