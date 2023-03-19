@@ -3,7 +3,7 @@ use gstreamer::{
     traits::{ElementExt, GstBinExt},
     ElementFactory, GhostPad,
 };
-use shared::{config::ServerConfig, build_videoconvertscale};
+use shared::{build_videoconvertscale, config::ServerConfig};
 
 pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, anyhow::Error> {
     let bin = gstreamer::Bin::new(Some("splitscreen"));
@@ -19,7 +19,9 @@ pub fn build_spliscreen_bin(settings: &ServerConfig) -> Result<gstreamer::Bin, a
         .property_from_str("tune", "zerolatency")
         .property("bitrate", 10000u32)
         .build()?;
-    let payloader = ElementFactory::make("rtph264pay").build()?;
+    let payloader = ElementFactory::make("rtph264pay")
+        .property_from_str("config-interval", "1")
+        .build()?;
 
     let video_sink = ElementFactory::make("udpsink")
         .property_from_str("host", &settings.multicast_address)

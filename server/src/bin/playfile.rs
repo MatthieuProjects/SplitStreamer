@@ -37,7 +37,7 @@ fn main() -> anyhow::Result<()> {
         .unwrap();
 
     // Create a sink for audio
-    let audio_sink = gstreamer::ElementFactory::make("autoaudiosink")
+    let audio_sink = gstreamer::ElementFactory::make("fakesink")
         .build()
         .unwrap();
 
@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
         println!("pad added to decodebin: {}", s.name());
         if s.name() == "video/x-raw" && !encodebin.is_linked() {
             pad.link(&encodebin).unwrap();
-        } else if s.name() == "audio/x-raw" && audio_sink_pad.is_linked() {
+        } else if s.name() == "audio/x-raw" && !audio_sink_pad.is_linked() {
             pad.link(&audio_sink_pad).unwrap();
         }
     });
