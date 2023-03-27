@@ -1,0 +1,12 @@
+[Unit]
+Description=SplitStreamer
+After=signaling.target
+Wants=signaling.target
+
+[Service]
+WorkingDirectory=/boot
+ExecStart=/usr/bin/server
+Restart=true
+
+[Install]
+WantedBy=multi-user.target

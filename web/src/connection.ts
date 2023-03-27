@@ -35,6 +35,7 @@ export default class WebRtcManager extends EventEmitter {
     #stream?: MediaStream;
     #istatus: Status = Status.Disconnected;
     #retrys: number = 0;
+    #type: 'user' | 'display' = 'display';
 
     set #status(value: Status) {
         this.#istatus = value;
@@ -45,8 +46,9 @@ export default class WebRtcManager extends EventEmitter {
         return this.#istatus;
     }
 
-    transmit() {
+    transmit(type: 'user' | 'display') {
         if (this.#connection === undefined && this.#websocket !== undefined) {
+            this.#type = type;
             this.#websocket?.send(JSON.stringify({ type: Codes.Join }));
         } else {
             throw new Error("Inconsistent state, can't start a stream in this state");
@@ -159,7 +161,11 @@ export default class WebRtcManager extends EventEmitter {
                     let stream: MediaStream;
 
                     try {
-                        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                        if (this.#type == 'user') {
+                            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                        } else {
+                            stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                        }
                     } catch (e) {
                         console.log(':: User declined the media stream request, disconnecting from room.');
                         window.setTimeout(this.#start.bind(this), 0);

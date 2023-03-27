@@ -13,7 +13,6 @@ use gstreamer::{prelude::*, ElementFactory};
 
 use anyhow::{anyhow, bail};
 
-use crate::splitscreen_bin::build_spliscreen_bin;
 use crate::webrtc::peer::PeerInner;
 
 use self::payloads::{Message, PeerPacketInner};
@@ -104,9 +103,12 @@ impl<'a> App {
         test.static_pad("src").unwrap().link(&pad).unwrap();
 
         let queue_output = pipeline.by_name("output").expect("can't find output");
-        let sink_bin = build_spliscreen_bin(&settings)?;
-        pipeline.add(&sink_bin)?;
-        queue_output.link(&sink_bin)?;
+
+        let videosink = ElementFactory::make("autovideosink").build()?;
+        let audiosink = ElementFactory::make("autoaudiosink").build()?;
+
+        pipeline.add_many(&[&videosink])?;
+        queue_output.link(&videosink)?;
         
 
         // Create a stream for handling the GStreamer message asynchronously

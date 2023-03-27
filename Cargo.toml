@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["client", "server", "shared", "confgen"]
+members = ["server", "shared", "confgen"]
 
 [workspace.dependencies]
 gstreamer = { version = "0.20.2", features = ["v1_18"] }
