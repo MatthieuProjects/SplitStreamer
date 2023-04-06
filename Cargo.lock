@@ -193,16 +193,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "confgen"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "serde_json",
- "shared",
-]
-
-[[package]]
 name = "config"
 version = "0.13.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

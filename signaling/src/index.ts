@@ -2,7 +2,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { contains } from "cidr-tools";
 import { nanoid } from "nanoid";
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: 8080, host: '0.0.0.0' });
 
 const localhost = ['::1/128', '127.0.0.0/8', '192.168.128.0/23'];
 let current_server: WebSocket | undefined;

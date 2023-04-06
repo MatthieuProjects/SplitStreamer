@@ -58,6 +58,7 @@ export default class WebRtcManager extends EventEmitter {
     stopTransmit() {
         if (this.#connection && this.#websocket) {
             this.#websocket.send(JSON.stringify({ type: Codes.ClientDisconnect }));
+            this.#websocket.close();
         } else {
             throw new Error("Inconsistent state, can't stop a stream in this state");
         }
@@ -110,11 +111,11 @@ export default class WebRtcManager extends EventEmitter {
         });
 
         this.#websocket.addEventListener('close', () => {
+
             // If our status is connecting, we shouldn't reset and start a new connection.
-            if (this.status !== Status.Connecting) {
+            if (this.status === Status.Connecting) {
                 return;
             }
-
             this.#status = Status.Disconnected;
 
             // Our status will be reset by the start method.

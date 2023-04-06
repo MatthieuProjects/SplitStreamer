@@ -1,28 +1,6 @@
 version: '3'
 
 services:
-  server:
-    build:
-      context: .
-      args:
-        TARGET: server
-    environment:
-      - GST_DEBUG=6
-    depends_on:
-      - signaling
-    devices:
-      - /dev/snd:/dev/snd
-      - /dev/dri:/dev/dri
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    volumes:
-      - ./server.dev.toml:/server.toml
-    image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
   web:
    build: web
    depends_on:
@@ -35,4 +13,6 @@ services:
      - 8443:443
   signaling:
    build: signaling
+   ports:
+    - 8080:8080
    image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

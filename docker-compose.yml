@@ -9,14 +9,8 @@ services:
     depends_on: []
       # - signaling
     image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
-  client:
-    build:
-      context: .
-      args:
-        TARGET: client
-    image: ghcr.io/matthieucoder/splitstreamer/client:${TAG:-latest}
-  # web:
-  #  build: web
+  web:
+   build: web
   #  depends_on:
   #    - signaling
   #  image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}

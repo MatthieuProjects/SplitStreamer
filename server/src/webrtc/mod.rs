@@ -1,6 +1,6 @@
+use shared::config::ServerConfig;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, Weak};
-use shared::config::ServerConfig;
 use tokio::sync::mpsc;
 
 use async_tungstenite::tungstenite;
@@ -8,8 +8,8 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::Stream;
 use tungstenite::Message as WsMessage;
 
+use gstreamer::prelude::*;
 use gstreamer::{glib, Element};
-use gstreamer::{prelude::*, ElementFactory};
 
 use anyhow::{anyhow, bail};
 
@@ -47,7 +47,8 @@ struct AppWeak(Weak<AppInner>);
 #[derive(Debug)]
 pub struct AppInner {
     pipeline: gstreamer::Pipeline,
-    fallback_switch: Element,
+    audio_switch: Element,
+    video_switch: Element,
     send_msg_tx: Arc<Mutex<mpsc::UnboundedSender<WsMessage>>>,
     peers: Mutex<BTreeMap<String, Peer>>,
 
@@ -76,7 +77,9 @@ impl<'a> App {
         AppWeak(Arc::downgrade(&self.0))
     }
 
-    pub fn new(settings: ServerConfig) -> Result<
+    pub fn new(
+        settings: ServerConfig,
+    ) -> Result<
         (
             App,
             impl Stream<Item = gstreamer::Message>,
@@ -86,29 +89,26 @@ impl<'a> App {
     > {
         // Create the GStreamer pipeline
         let pipeline = gstreamer::parse_launch(
-            "fallbackswitch min-upstream-latency=5000 name=switch ! queue name=output",
+            "videotestsrc ! fallbackswitch min-upstream-latency=5000 name=video_switch ! autovideosink audiotestsrc ! fallbackswitch name=audio_switch ! autoaudiosink",
         )?;
-
-        let test = ElementFactory::make("videotestsrc").build()?;
 
         // Downcast from gstreamer::Element to gstreamer::Pipeline
         let pipeline = pipeline
             .downcast::<gstreamer::Pipeline>()
             .expect("not a pipeline");
-        pipeline.add(&test).unwrap();
+
         // Get access to the tees and mixers by name
-        let fallback_switch = pipeline.by_name("switch").expect("can't find switch");
-        let pad = fallback_switch.request_pad_simple("sink_%u").unwrap();
-        pad.set_property_from_str("priority", "10");
-        test.static_pad("src").unwrap().link(&pad).unwrap();
+        let audio_switch = pipeline
+            .by_name("audio_switch")
+            .expect("Audio switch couldn't be found.");
+        let video_switch = pipeline
+            .by_name("video_switch")
+            .expect("Video switch couldn't be found.");
 
-        let queue_output = pipeline.by_name("output").expect("can't find output");
-
-        let videosink = ElementFactory::make("autovideosink").build()?;
-        let audiosink = ElementFactory::make("autoaudiosink").build()?;
-
-        pipeline.add_many(&[&videosink])?;
-        queue_output.link(&videosink)?;
+        let default_sink = video_switch.iterate_sink_pads().next().unwrap().unwrap();
+        default_sink.set_property("priority", 10u32);
+        let default_sink = audio_switch.iterate_sink_pads().next().unwrap().unwrap();
+        default_sink.set_property("priority", 10u32);
         
 
         // Create a stream for handling the GStreamer message asynchronously
@@ -120,10 +120,11 @@ impl<'a> App {
 
         let app = App(Arc::new(AppInner {
             pipeline,
-            fallback_switch,
+            audio_switch,
+            video_switch,
             peers: Mutex::new(BTreeMap::new()),
             send_msg_tx: Arc::new(Mutex::new(send_ws_msg_tx)),
-            settings
+            settings,
         }));
 
         // Asynchronously set the pipeline to Playing
@@ -227,7 +228,7 @@ impl<'a> App {
             bin: peer_bin,
             webrtcbin,
             send_msg_tx: self.send_msg_tx.clone(),
-            settings: self.settings.clone()
+            settings: self.settings.clone(),
         }));
 
         // Insert the peer into our map_
@@ -296,37 +297,34 @@ impl<'a> App {
         peer.bin.connect_pad_added(move |_bin, pad| {
             let app = upgrade_weak!(app_clone);
 
-            if pad.name() == "audio_src" {
-                let audiomixer_sink_pad = ElementFactory::make("fakesink").build().unwrap();
-                app.pipeline.add(&audiomixer_sink_pad).unwrap();
+            match pad.name().as_str() {
+                "audio_src" => {
+                    let sink_pad = app.audio_switch.request_pad_simple("sink_%u").unwrap();
+                    pad.link(&sink_pad).unwrap();
 
-                let sink_pad = audiomixer_sink_pad.static_pad("sink").unwrap();
-                pad.link(&sink_pad).unwrap();
+                    sink_pad.connect_unlinked(move |pad, _peer| {
+                        if let Some(audiomixer) = pad.parent() {
+                            let audiomixer =
+                                audiomixer.downcast_ref::<gstreamer::Element>().unwrap();
+                            audiomixer.release_request_pad(pad);
+                        }
+                    });
+                }
+                "video_src" => {
+                    let sink_pad = app.video_switch.request_pad_simple("sink_%u").unwrap();
+                    pad.link(&sink_pad).unwrap();
 
-                // Once it is unlinked again later when the peer is being removed,
-                // also release the pad on the mixer
-                sink_pad.connect_unlinked(move |pad, _peer| {
-                    if let Some(audiomixer) = pad.parent() {
-                        let audiomixer = audiomixer.downcast_ref::<gstreamer::Element>().unwrap();
-                        audiomixer.release_request_pad(pad);
-                    }
-                });
-                println!("audio is unhandled for now.");
-            } else if pad.name() == "video_src" {
-                let videomixer_sink_pad =
-                    app.fallback_switch.request_pad_simple("sink_%u").unwrap();
-                pad.link(&videomixer_sink_pad).unwrap();
-
-                app.fallback_switch
-                    .set_property("active-pad", &videomixer_sink_pad);
-                // Once it is unlinked again later when the peer is being removed,
-                // also release the pad on the mixer
-                videomixer_sink_pad.connect_unlinked(move |pad, _peer| {
-                    if let Some(videomixer) = pad.parent() {
-                        let videomixer = videomixer.downcast_ref::<gstreamer::Element>().unwrap();
-                        videomixer.release_request_pad(pad);
-                    }
-                });
+                    sink_pad.connect_unlinked(move |pad, _peer| {
+                        if let Some(videomixer) = pad.parent() {
+                            let videomixer =
+                                videomixer.downcast_ref::<gstreamer::Element>().unwrap();
+                            videomixer.release_request_pad(pad);
+                        }
+                    });
+                }
+                &_ => {
+                    unreachable!()
+                }
             }
         });
 

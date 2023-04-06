@@ -10,13 +10,13 @@ const start = document.querySelector<HTMLButtonElement>('#start')!;
 const stop = document.querySelector<HTMLButtonElement>('#stop')!;
 
 // @ts-ignore
-function doStart(type: 'user' | 'display') {
+window.doStart = function doStart(type: 'user' | 'display') {
   console.log(':: User clicked the button for ', type);
   manager.transmit(type);
 }
 
 // @ts-ignore
-function doStop() {
+window.doStop = function doStop() {
   manager.stopTransmit();
 }
 
