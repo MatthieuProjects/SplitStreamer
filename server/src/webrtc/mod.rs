@@ -89,7 +89,7 @@ impl<'a> App {
     > {
         // Create the GStreamer pipeline
         let pipeline = gstreamer::parse_launch(
-            "videotestsrc ! fallbackswitch min-upstream-latency=5000 name=video_switch ! capsfilter caps=video/x-raw,width=1920,height=1080,pixel-aspect-ratio=1/1 ! autovideosink audiotestsrc ! fallbackswitch name=audio_switch ! autoaudiosink",
+            "videotestsrc ! fallbackswitch min-upstream-latency=5000 name=video_switch ! capsfilter caps=video/x-raw,width=1280,height=800,pixel-aspect-ratio=1/1 ! autovideosink audiotestsrc ! fallbackswitch name=audio_switch ! autoaudiosink",
         )?;
 
         // Downcast from gstreamer::Element to gstreamer::Pipeline
