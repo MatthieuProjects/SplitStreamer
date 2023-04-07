@@ -288,7 +288,7 @@ impl Peer {
 
         let conv = if media_type == "video" {
             gstreamer::parse_bin_from_description(
-                "decodebin name=dbin ! queue ! videoconvert ! videoscale name=src",
+                "decodebin name=dbin ! queue ! videoconvert ! videoscale ! capsfilter caps=video/x-raw,width=1920,height=1080,pixel-aspect-ratio=1/1 name=src",
                 false,
             )?
         } else if media_type == "audio" {
