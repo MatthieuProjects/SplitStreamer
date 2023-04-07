@@ -51,12 +51,3 @@ jobs:
         with:
           name: artifacts
           path: out/*
-      - name: Build image
-        run: |
-          sudo apt-get install -y coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx gpg pigz
-          sudo ./build_image.sh
-      
-      - uses: actions/upload-artifact@v3
-        with:
-          name: rpi_images
-          path: pi-gen/deploy/*
