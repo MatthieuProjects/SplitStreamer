@@ -284,12 +284,14 @@ impl Peer {
             .expect("Invalid type")
             .ok_or_else(|| anyhow!("no media type in caps {caps:?}"))?;
 
-        let conv = /*if media_type == "video" {
+        println!("incoming string with caps: {}", caps.to_string());
+
+        let conv = if media_type == "video" {
             gstreamer::parse_bin_from_description(
                 "decodebin name=dbin ! queue ! videoconvert ! videoscale name=src",
                 false,
             )?
-        } else */if media_type == "audio" {
+        } else if media_type == "audio" {
             gstreamer::parse_bin_from_description(
                 "decodebin name=dbin ! queue ! audioconvert ! audioresample name=src",
                 false,
@@ -313,9 +315,6 @@ impl Peer {
         conv.add_pad(&srcpad).unwrap();
 
         self.bin.add(&conv).unwrap();
-        conv.sync_state_with_parent()
-            .with_context(|| format!("can't start sink for stream {caps:?}"))?;
-
         pad.link(&sinkpad)
             .with_context(|| format!("can't link sink for stream {caps:?}"))?;
 
@@ -329,6 +328,10 @@ impl Peer {
             srcpad.set_active(true).unwrap();
             self.bin.add_pad(&srcpad).unwrap();
         }
+
+
+        conv.sync_state_with_parent()
+            .with_context(|| format!("can't start sink for stream {caps:?}"))?;
 
         Ok(())
     }

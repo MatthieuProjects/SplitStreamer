@@ -8,7 +8,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::Stream;
 use tungstenite::Message as WsMessage;
 
-use gstreamer::{prelude::*, DebugGraphDetails};
+use gstreamer::{prelude::*};
 use gstreamer::{glib, Element};
 
 use anyhow::{anyhow, bail};
@@ -89,7 +89,7 @@ impl<'a> App {
     > {
         // Create the GStreamer pipeline
         let pipeline = gstreamer::parse_launch(
-            "videotestsrc ! fallbackswitch min-upstream-latency=5000 name=video_switch ! autovideosink audiotestsrc ! fallbackswitch name=audio_switch ! autoaudiosink",
+            "videotestsrc ! fallbackswitch min-upstream-latency=5000 name=video_switch ! capsfilter caps=video/x-raw,width=1920,height=1080,pixel-aspect-ratio=1/1 ! autovideosink audiotestsrc ! fallbackswitch name=audio_switch ! autoaudiosink",
         )?;
 
         // Downcast from gstreamer::Element to gstreamer::Pipeline
@@ -105,14 +105,11 @@ impl<'a> App {
             .by_name("video_switch")
             .expect("Video switch couldn't be found.");
 
-        pipeline.debug_to_dot_file(DebugGraphDetails::all(), "discord.p");
-
         let default_sink = video_switch.iterate_sink_pads().next().unwrap().unwrap();
         default_sink.set_property("priority", 10u32);
         let default_sink = audio_switch.iterate_sink_pads().next().unwrap().unwrap();
         default_sink.set_property("priority", 10u32);
         
-
         // Create a stream for handling the GStreamer message asynchronously
         let bus = pipeline.bus().unwrap();
         let send_gst_msg_rx = bus.stream();
@@ -223,7 +220,6 @@ impl<'a> App {
         // Set some properties on webrtcbin
         webrtcbin.set_property_from_str("stun-server", &self.settings.stun_server);
         webrtcbin.set_property_from_str("turn-server", &self.settings.turn_server);
-        webrtcbin.set_property_from_str("bundle-policy", "balanced");
 
         let peer = Peer(Arc::new(PeerInner {
             peer_id: peer_id.to_string(),
