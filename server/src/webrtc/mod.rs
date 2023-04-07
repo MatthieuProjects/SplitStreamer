@@ -8,7 +8,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::Stream;
 use tungstenite::Message as WsMessage;
 
-use gstreamer::prelude::*;
+use gstreamer::{prelude::*, DebugGraphDetails};
 use gstreamer::{glib, Element};
 
 use anyhow::{anyhow, bail};
@@ -104,6 +104,8 @@ impl<'a> App {
         let video_switch = pipeline
             .by_name("video_switch")
             .expect("Video switch couldn't be found.");
+
+        pipeline.debug_to_dot_file(DebugGraphDetails::all(), "discord.p");
 
         let default_sink = video_switch.iterate_sink_pads().next().unwrap().unwrap();
         default_sink.set_property("priority", 10u32);
@@ -221,7 +223,7 @@ impl<'a> App {
         // Set some properties on webrtcbin
         webrtcbin.set_property_from_str("stun-server", &self.settings.stun_server);
         webrtcbin.set_property_from_str("turn-server", &self.settings.turn_server);
-        webrtcbin.set_property_from_str("bundle-policy", "max-bundle");
+        webrtcbin.set_property_from_str("bundle-policy", "balanced");
 
         let peer = Peer(Arc::new(PeerInner {
             peer_id: peer_id.to_string(),

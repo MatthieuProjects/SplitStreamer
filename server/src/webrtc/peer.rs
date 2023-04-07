@@ -284,14 +284,12 @@ impl Peer {
             .expect("Invalid type")
             .ok_or_else(|| anyhow!("no media type in caps {caps:?}"))?;
 
-        let conv = if media_type == "video" {
+        let conv = /*if media_type == "video" {
             gstreamer::parse_bin_from_description(
-                &format!(
-                    "decodebin name=dbin ! queue ! videoconvert ! videoscale name=src"
-                ),
+                "decodebin name=dbin ! queue ! videoconvert ! videoscale name=src",
                 false,
             )?
-        } else if media_type == "audio" {
+        } else */if media_type == "audio" {
             gstreamer::parse_bin_from_description(
                 "decodebin name=dbin ! queue ! audioconvert ! audioresample name=src",
                 false,
@@ -337,7 +335,7 @@ impl Peer {
 }
 
 // At least shut down the bin here if it didn't happen so far
-impl Drop for PeerInner{
+impl Drop for PeerInner {
     fn drop(&mut self) {
         let _ = self.bin.set_state(gstreamer::State::Null);
     }

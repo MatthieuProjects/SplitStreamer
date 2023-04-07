@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
     let (app, send_gst_msg_rx, send_ws_msg_rx) = App::new(settings)?;
     let mut send_gst_msg_rx = send_gst_msg_rx.fuse();
     let mut send_ws_msg_rx = send_ws_msg_rx.fuse();
-
+    
     // And now let's start our message loop
     loop {
         let ws_msg = select! {

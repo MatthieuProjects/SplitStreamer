@@ -14,7 +14,6 @@ window.doStart = function doStart(type: 'user' | 'display') {
   console.log(':: User clicked the button for ', type);
   manager.transmit(type);
 }
-
 // @ts-ignore
 window.doStop = function doStop() {
   manager.stopTransmit();
