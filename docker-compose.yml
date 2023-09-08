@@ -6,16 +6,33 @@ services:
       context: .
       args:
         TARGET: server
-    depends_on: []
-      # - signaling
+    depends_on:
+      - signaling
+    devices:
+      - /dev/snd
+      - /dev/dri
+    privileged: true
+    environment:
+      - WAYLAND_DISPLAY=wayland-0
+      - XDG_RUNTIME_DIR=/tmp
+      - GST_DEBUG=5
+    network_mode: host
+    volumes:
+      - /run/user/1000/wayland-0:/tmp/wayland-0
+      - ./server.toml:/server.toml
     image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
   web:
    build: web
-  #  depends_on:
-  #    - signaling
-  #  image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
-  #  ports:
-  #    - 8443:80
-  # ignaling:
-  #  build: signaling
-  #  image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}
+   volumes:
+      - ./ssl.key:/usr/nginx/ssl.key
+      - ./ssl.crt:/usr/nginx/ssl.crt
+   depends_on:
+    - signaling
+   image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
+   ports:
+    - 443:443
+  signaling:
+   build: signaling
+   ports:
+    - 127.0.0.1:8080:8080
+   image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}

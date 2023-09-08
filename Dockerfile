@@ -2,7 +2,7 @@
 ARG TARGET
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
-FROM --platform=$BUILDPLATFORM rust as alpine_rbuild
+FROM --platform=$BUILDPLATFORM rust:bullseye as alpine_rbuild
 ENV TARGET=${TARGET}
 
 # We need this to handle gstreamer packages.
@@ -15,7 +15,7 @@ COPY --from=xx / /
 
 ARG TARGETPLATFORM
 # Install the libraries dependent on architecture.
-RUN xx-apt install -y libgcc-10-dev libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl linux-libc-dev gstreamer1.0-nice
+RUN xx-apt install -y libglib2.0-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl linux-libc-dev gstreamer1.0-nice
 
 # Copy source code
 COPY . .
@@ -29,7 +29,7 @@ RUN mkdir -p ./out && cp ./build/*/release/* ./out || true
 FROM --platform=$BUILDPLATFORM scratch as bare
 COPY --from=alpine_rbuild /out/$TARGET .
 
-FROM debian AS runtime
+FROM debian:bullseye AS runtime
 ARG TARGET
 ENV TARGET=${TARGET}
 
