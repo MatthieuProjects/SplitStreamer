@@ -1,3 +1,3 @@
 signaling_server = "ws://localhost:8080/_server"
 stun_server = "stun://stun.relay.metered.ca:80"
-turn_server = "turn://3e21c8dc8881ce70abcc1aeb:reAfUwAGijsUr34r@a.relay.metered.ca:80"
+turn_server = ""
