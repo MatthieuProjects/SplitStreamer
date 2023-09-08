@@ -11,14 +11,10 @@ services:
     devices:
       - /dev/snd
       - /dev/dri
-    privileged: true
-    environment:
-      - WAYLAND_DISPLAY=wayland-0
-      - XDG_RUNTIME_DIR=/tmp
-      - GST_DEBUG=5
     network_mode: host
     volumes:
-      - /run/user/1000/wayland-0:/tmp/wayland-0
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
       - ./server.toml:/server.toml
     image: ghcr.io/matthieucoder/splitstreamer/server:${TAG:-latest}
   web:

@@ -303,15 +303,12 @@ impl Peer {
 
         // Add a ghost pad on our conv bin that proxies the sink pad of the decodebin
         let dbin = conv.by_name("dbin").unwrap();
-        let sinkpad =
-            gstreamer::GhostPad::with_target(Some("sink"), &dbin.static_pad("sink").unwrap())
-                .unwrap();
+        let sinkpad = gstreamer::GhostPad::with_target(&dbin.static_pad("sink").unwrap()).unwrap();
         conv.add_pad(&sinkpad).unwrap();
 
         // And another one that proxies the source pad of the last element
         let src = conv.by_name("src").unwrap();
-        let srcpad =
-            gstreamer::GhostPad::with_target(Some("src"), &src.static_pad("src").unwrap()).unwrap();
+        let srcpad = gstreamer::GhostPad::with_target(&src.static_pad("src").unwrap()).unwrap();
         conv.add_pad(&srcpad).unwrap();
 
         self.bin.add(&conv).unwrap();
@@ -320,15 +317,20 @@ impl Peer {
 
         // And then add a new ghost pad to the peer bin that proxies the source pad we added above
         if media_type == "video" {
-            let srcpad = gstreamer::GhostPad::with_target(Some("video_src"), &srcpad).unwrap();
+            let srcpad = gstreamer::GhostPad::builder_with_target(&srcpad)
+                .unwrap()
+                .name("video_src")
+                .build();
             srcpad.set_active(true).unwrap();
             self.bin.add_pad(&srcpad).unwrap();
         } else if media_type == "audio" {
-            let srcpad = gstreamer::GhostPad::with_target(Some("audio_src"), &srcpad).unwrap();
+            let srcpad = gstreamer::GhostPad::builder_with_target(&srcpad)
+                .unwrap()
+                .name("audio_src")
+                .build();
             srcpad.set_active(true).unwrap();
             self.bin.add_pad(&srcpad).unwrap();
         }
-
 
         conv.sync_state_with_parent()
             .with_context(|| format!("can't start sink for stream {caps:?}"))?;

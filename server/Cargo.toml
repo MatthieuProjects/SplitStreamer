@@ -17,13 +17,13 @@ shared = { path = "../shared" }
 tokio = { version = "1.26.0", features = ["full"] }
 tokio-stream = "0.1.12"
 
-async-tungstenite = { version = "0.20.0", features = [
+async-tungstenite = { version = "0.23.0", features = [
     "tokio-rustls-native-certs",
     "tokio-runtime",
 ] }
 
-gstreamer-webrtc = { version = "*", features = ["v1_18"] }
-gstreamer-sdp = { version = "*", features = ["v1_18"] }
-gst-plugin-fallbackswitch = { version = "*", features = [
+gstreamer-webrtc = { version = "0.21.0", features = ["v1_18"] }
+gstreamer-sdp = { version = "0.21.0", features = ["v1_18"] }
+gst-plugin-fallbackswitch = { version = "0.11.0", features = [
     "static",
 ], default-features = false }

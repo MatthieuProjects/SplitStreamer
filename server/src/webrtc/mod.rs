@@ -321,6 +321,7 @@ impl<'a> App {
                     });
                 }
                 &_ => {
+                    println!("Source pad {} is not recognized", pad.name().as_str());
                     unreachable!()
                 }
             }

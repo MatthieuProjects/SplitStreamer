@@ -1,18 +1,10 @@
 version: '3'
 
 services:
-  web:
-   build: web
-   depends_on:
-     - signaling
-   volumes:
-      - ./ssl.key:/usr/nginx/ssl.key
-      - ./ssl.crt:/usr/nginx/ssl.crt
-   image: ghcr.io/matthieucoder/splitstreamer/web:${TAG:-latest}
-   ports:
-     - 8443:443
-  signaling:
-   build: signaling
-   ports:
-    - 8080:8080
-   image: ghcr.io/matthieucoder/splitstreamer/signaling:${TAG:-latest}
+  server:
+    environment:
+      DISPLAY: $DISPLAY
+      GST_DEBUG: "4"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
