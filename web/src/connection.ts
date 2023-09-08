@@ -163,6 +163,7 @@ export default class WebRtcManager extends EventEmitter {
 
                     try {
                         if (this.#type == 'user') {
+
                             stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                         } else {
                             stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });

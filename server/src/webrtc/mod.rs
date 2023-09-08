@@ -8,7 +8,7 @@ use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::Stream;
 use tungstenite::Message as WsMessage;
 
-use gstreamer::{prelude::*};
+use gstreamer::prelude::*;
 use gstreamer::{glib, Element};
 
 use anyhow::{anyhow, bail};
